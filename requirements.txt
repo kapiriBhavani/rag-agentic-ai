@@ -1,0 +1,26 @@
+# Core LangChain & LangGraph
+langchain>=0.2.0
+langgraph>=0.1.0
+langchain-openai>=0.1.0
+langchain-community>=0.2.0
+langchain-huggingface>=0.0.3
+langchain-text-splitters>=0.2.0
+
+# Vector Store
+pinecone-client>=3.0.0
+langchain-pinecone>=0.1.0
+
+# PDF Processing
+pypdf>=4.0.0
+
+# API & UI
+fastapi>=0.110.0
+uvicorn>=0.28.0
+streamlit>=1.32.0
+
+# Utilities
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+
+# Embeddings (Free alternative)
+sentence-transformers>=2.2.0
