@@ -33,7 +33,7 @@ This project implements a RAG pipeline that:
 - **Strict Grounding**: The LLM only answers from the document — refuses out-of-scope questions
 - **Confidence Scoring**: Each response includes a confidence score (0.0 to 1.0)
 - **Dual Interface**: Both REST API (FastAPI) and Web UI (Streamlit)
-- **Flexible Providers**: Supports OpenAI or HuggingFace embeddings, and OpenAI or Ollama LLMs
+- **Flexible Providers**: Supports OpenAI, Google Gemini, or HuggingFace embeddings, and OpenAI, Gemini, or Ollama LLMs
 
 ---
 
@@ -101,7 +101,8 @@ rag-agentic-ai/
 
 - **Python** 3.10 or higher
 - **Pinecone** free tier account ([sign up here](https://app.pinecone.io/))
-- **OpenAI** API key ([get one here](https://platform.openai.com/api-keys)) — *or use free alternatives (see Configuration)*
+- **OpenAI** API key ([get one here](https://platform.openai.com/api-keys)) — *or use free alternatives*
+- **Google Gemini** API key ([get one here](https://aistudio.google.com/apikey)) — *free tier available*
 
 ---
 
@@ -138,11 +139,12 @@ Edit the `.env` file and add your API keys:
 
 ```env
 OPENAI_API_KEY=sk-your-openai-key-here
+GOOGLE_API_KEY=your-gemini-key-here
 PINECONE_API_KEY=your-pinecone-key-here
 PINECONE_INDEX_NAME=agentic-ai-index
 ```
 
-> **Note:** If you don't have an OpenAI API key, set `EMBEDDING_PROVIDER=huggingface` and `LLM_PROVIDER=ollama` to use free alternatives.
+> **Note:** You only need ONE of OpenAI or Google API key. If using Gemini (free), set `EMBEDDING_PROVIDER=google` and `LLM_PROVIDER=google`. The system auto-detects based on which keys are set.
 
 ---
 
@@ -261,15 +263,15 @@ python tests_sample_queries.py
 
 The system supports two provider modes, configured via `.env`:
 
-| Setting | OpenAI (Default) | Free Alternative |
-|---------|-----------------|------------------|
-| `EMBEDDING_PROVIDER` | `openai` | `huggingface` |
-| `LLM_PROVIDER` | `openai` | `ollama` |
-| Embedding Model | `text-embedding-3-small` (1536d) | `all-MiniLM-L6-v2` (384d) |
-| LLM Model | `gpt-4o-mini` | `llama3.2` (local) |
-| Vector Dimension | 1536 | 384 |
+| Setting | OpenAI | Google Gemini (Free) | HuggingFace + Ollama |
+|---------|--------|---------------------|----------------------|
+| `EMBEDDING_PROVIDER` | `openai` | `google` | `huggingface` |
+| `LLM_PROVIDER` | `openai` | `google` | `ollama` |
+| Embedding Model | `text-embedding-3-small` (1536d) | `text-embedding-004` (768d) | `all-MiniLM-L6-v2` (384d) |
+| LLM Model | `gpt-4o-mini` | `gemini-2.0-flash` | `llama3.2` (local) |
+| Vector Dimension | 1536 | 768 | 384 |
 
-> **Auto-detection:** If `OPENAI_API_KEY` is not set, the system automatically falls back to HuggingFace embeddings + Ollama LLM.
+> **Auto-detection:** The system picks providers based on available keys: OpenAI → Google → Free alternatives.
 
 ---
 

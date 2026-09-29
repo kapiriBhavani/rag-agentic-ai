@@ -2,7 +2,7 @@
 Configuration module for the RAG Agentic AI Chatbot.
 
 Handles environment variable loading, API key validation,
-and provider selection (OpenAI vs. free alternatives).
+and provider selection (OpenAI / Google Gemini / HuggingFace+Ollama).
 """
 
 import os
@@ -15,6 +15,7 @@ load_dotenv()
 # API Keys
 # ---------------------------------------------------------------------------
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY", "")
 
 # ---------------------------------------------------------------------------
@@ -28,13 +29,22 @@ PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "agentic-ai-index")
 EMBEDDING_PROVIDER = os.getenv("EMBEDDING_PROVIDER", "").lower()
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "").lower()
 
-# Auto-detect: if no OpenAI key, fall back to free alternatives
-if not OPENAI_API_KEY or OPENAI_API_KEY == "your_openai_api_key":
-    EMBEDDING_PROVIDER = EMBEDDING_PROVIDER or "huggingface"
-    LLM_PROVIDER = LLM_PROVIDER or "ollama"
-else:
-    EMBEDDING_PROVIDER = EMBEDDING_PROVIDER or "openai"
-    LLM_PROVIDER = LLM_PROVIDER or "openai"
+# Auto-detect: prioritize OpenAI > Google > free alternatives
+if not EMBEDDING_PROVIDER:
+    if OPENAI_API_KEY and OPENAI_API_KEY != "your_openai_api_key":
+        EMBEDDING_PROVIDER = "openai"
+    elif GOOGLE_API_KEY and GOOGLE_API_KEY != "your_google_api_key":
+        EMBEDDING_PROVIDER = "google"
+    else:
+        EMBEDDING_PROVIDER = "huggingface"
+
+if not LLM_PROVIDER:
+    if OPENAI_API_KEY and OPENAI_API_KEY != "your_openai_api_key":
+        LLM_PROVIDER = "openai"
+    elif GOOGLE_API_KEY and GOOGLE_API_KEY != "your_google_api_key":
+        LLM_PROVIDER = "google"
+    else:
+        LLM_PROVIDER = "ollama"
 
 # ---------------------------------------------------------------------------
 # Embedding Configuration
@@ -42,12 +52,17 @@ else:
 OPENAI_EMBEDDING_MODEL = "text-embedding-3-small"
 OPENAI_EMBEDDING_DIMENSION = 1536
 
+GOOGLE_EMBEDDING_MODEL = "models/text-embedding-004"
+GOOGLE_EMBEDDING_DIMENSION = 768
+
 HUGGINGFACE_EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 HUGGINGFACE_EMBEDDING_DIMENSION = 384
 
 # Active embedding settings based on provider
 if EMBEDDING_PROVIDER == "openai":
     EMBEDDING_DIMENSION = OPENAI_EMBEDDING_DIMENSION
+elif EMBEDDING_PROVIDER == "google":
+    EMBEDDING_DIMENSION = GOOGLE_EMBEDDING_DIMENSION
 else:
     EMBEDDING_DIMENSION = HUGGINGFACE_EMBEDDING_DIMENSION
 
@@ -55,6 +70,7 @@ else:
 # LLM Configuration
 # ---------------------------------------------------------------------------
 OPENAI_LLM_MODEL = "gpt-4o-mini"
+GOOGLE_LLM_MODEL = "gemini-2.0-flash"
 OLLAMA_LLM_MODEL = "llama3.2"
 
 # ---------------------------------------------------------------------------
@@ -78,6 +94,12 @@ def get_embeddings():
             model=OPENAI_EMBEDDING_MODEL,
             openai_api_key=OPENAI_API_KEY,
         )
+    elif EMBEDDING_PROVIDER == "google":
+        from langchain_google_genai import GoogleGenerativeAIEmbeddings
+        return GoogleGenerativeAIEmbeddings(
+            model=GOOGLE_EMBEDDING_MODEL,
+            google_api_key=GOOGLE_API_KEY,
+        )
     else:
         from langchain_huggingface import HuggingFaceEmbeddings
         return HuggingFaceEmbeddings(
@@ -93,6 +115,13 @@ def get_llm():
             model=OPENAI_LLM_MODEL,
             temperature=0,
             openai_api_key=OPENAI_API_KEY,
+        )
+    elif LLM_PROVIDER == "google":
+        from langchain_google_genai import ChatGoogleGenerativeAI
+        return ChatGoogleGenerativeAI(
+            model=GOOGLE_LLM_MODEL,
+            temperature=0,
+            google_api_key=GOOGLE_API_KEY,
         )
     else:
         from langchain_community.llms import Ollama
@@ -116,5 +145,6 @@ def print_config():
     print(f"  Chunk Overlap      : {CHUNK_OVERLAP}")
     print(f"  Top-K Results      : {TOP_K_RESULTS}")
     print(f"  OpenAI Key Set     : {'Yes' if OPENAI_API_KEY and OPENAI_API_KEY != 'your_openai_api_key' else 'No'}")
+    print(f"  Google Key Set     : {'Yes' if GOOGLE_API_KEY and GOOGLE_API_KEY != 'your_google_api_key' else 'No'}")
     print(f"  Pinecone Key Set   : {'Yes' if PINECONE_API_KEY and PINECONE_API_KEY != 'your_pinecone_api_key' else 'No'}")
     print("=" * 50)
