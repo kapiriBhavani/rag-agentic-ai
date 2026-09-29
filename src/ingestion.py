@@ -99,15 +99,27 @@ def upsert_to_pinecone(chunks: list, index_name: str) -> PineconeVectorStore:
     Returns:
         PineconeVectorStore instance for querying.
     """
-    print(f"[4/4] Generating embeddings and upserting to Pinecone...")
+    import time
+    from langchain_pinecone import PineconeVectorStore
+    print(f"[4/4] Generating embeddings and upserting to Pinecone in batches to respect rate limits...")
 
     embeddings = get_embeddings()
-
-    vector_store = PineconeVectorStore.from_documents(
-        documents=chunks,
-        embedding=embeddings,
+    
+    # Initialize an empty vector store to add to
+    vector_store = PineconeVectorStore(
         index_name=index_name,
+        embedding=embeddings,
+        pinecone_api_key=PINECONE_API_KEY
     )
+
+    batch_size = 20
+    for i in range(0, len(chunks), batch_size):
+        batch = chunks[i:i+batch_size]
+        print(f"       Processing batch {i//batch_size + 1}/{len(chunks)//batch_size + 1}: chunks {i} to {i+len(batch)-1}")
+        vector_store.add_documents(batch)
+        if i + batch_size < len(chunks):
+            print("       Waiting 15 seconds to respect rate limits...")
+            time.sleep(15)
 
     print(f"       Successfully upserted {len(chunks)} chunks to index '{index_name}'.")
     return vector_store
