@@ -70,7 +70,7 @@ else:
 # LLM Configuration
 # ---------------------------------------------------------------------------
 OPENAI_LLM_MODEL = "gpt-4o-mini"
-GOOGLE_LLM_MODEL = "gemini-2.0-flash"
+GOOGLE_LLM_MODEL = "gemini-3.8-flash"
 OLLAMA_LLM_MODEL = "llama3.2"
 
 # ---------------------------------------------------------------------------
