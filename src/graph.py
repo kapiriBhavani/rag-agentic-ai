@@ -104,7 +104,17 @@ def build_rag_graph(index_name: str = None):
 
         # Extract the response content (handle both ChatModel and LLM outputs)
         if hasattr(response, "content"):
-            answer_text = response.content
+            if isinstance(response.content, list):
+                # Handle Gemini 3.8 returning a list of content blocks
+                texts = []
+                for block in response.content:
+                    if isinstance(block, dict) and "text" in block:
+                        texts.append(block["text"])
+                    elif isinstance(block, str):
+                        texts.append(block)
+                answer_text = " ".join(texts)
+            else:
+                answer_text = str(response.content)
         else:
             answer_text = str(response)
 
