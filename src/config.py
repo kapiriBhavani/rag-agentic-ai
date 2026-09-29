@@ -17,6 +17,7 @@ load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY", "")
+NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY", "")
 
 # ---------------------------------------------------------------------------
 # Pinecone Configuration
@@ -41,6 +42,8 @@ if not EMBEDDING_PROVIDER:
 if not LLM_PROVIDER:
     if OPENAI_API_KEY and OPENAI_API_KEY != "your_openai_api_key":
         LLM_PROVIDER = "openai"
+    elif NVIDIA_API_KEY and NVIDIA_API_KEY != "your_nvidia_api_key":
+        LLM_PROVIDER = "nvidia"
     elif GOOGLE_API_KEY and GOOGLE_API_KEY != "your_google_api_key":
         LLM_PROVIDER = "google"
     else:
@@ -71,6 +74,7 @@ else:
 # ---------------------------------------------------------------------------
 OPENAI_LLM_MODEL = "gpt-4o-mini"
 GOOGLE_LLM_MODEL = "gemini-3.8-flash"
+NVIDIA_LLM_MODEL = "z-ai/glm-5.3-flash"
 OLLAMA_LLM_MODEL = "llama3.2"
 
 # ---------------------------------------------------------------------------
@@ -115,6 +119,14 @@ def get_llm():
             model=OPENAI_LLM_MODEL,
             temperature=0,
             openai_api_key=OPENAI_API_KEY,
+        )
+    elif LLM_PROVIDER == "nvidia":
+        from langchain_openai import ChatOpenAI
+        return ChatOpenAI(
+            model=NVIDIA_LLM_MODEL,
+            temperature=0,
+            openai_api_key=NVIDIA_API_KEY,
+            openai_api_base="https://integrate.api.nvidia.com/v1"
         )
     elif LLM_PROVIDER == "google":
         from langchain_google_genai import ChatGoogleGenerativeAI
